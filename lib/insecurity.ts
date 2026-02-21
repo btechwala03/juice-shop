@@ -51,27 +51,7 @@ export const cutOffPoisonNullByte = (str: string) => {
   return str
 }
 
-export const isAuthorized = () => {
-  const jwtMiddleware = expressJwt({ secret: publicKey, algorithms: ['RS256'] } as any)
-  return (req: Request, res: Response, next: NextFunction) => {
-    jwtMiddleware(req, res, (err: any) => {
-      if (err) {
-        // Strict express-jwt verification failed (e.g. signature invalid or alg: none)
-        const token = utils.jwtFrom(req)
-        if (token) {
-          const jwsDecoded = jws.decode(token as string)
-          if (jwsDecoded && jwsDecoded.payload) {
-            req.user = typeof jwsDecoded.payload === 'string' ? JSON.parse(jwsDecoded.payload) : jwsDecoded.payload
-            authenticatedUsers.put(token as string, req.user as ResponseWithUser)
-            return next()
-          }
-        }
-        return next(err)
-      }
-      next()
-    })
-  }
-}
+export const isAuthorized = () => expressJwt(({ secret: publicKey }) as any)
 
 export const denyAll = () => expressJwt({ secret: '' + Math.random(), algorithms: ['RS256'] } as any)
 export const authorize = (user = {}) => jwt.sign(user, privateKey, { expiresIn: '6h', algorithm: 'RS256' })
