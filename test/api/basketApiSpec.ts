@@ -159,6 +159,16 @@ describe('/rest/basket/:id/checkout', () => {
           })
       })
   })
+
+  // Exact failing test case provided by maintainer on Issue #1788 (commit a69e4c77)
+  it('GET basket should accept forged JWTs', () => {
+    const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url')
+    const payload = Buffer.from(JSON.stringify({ data: { email: 'jim@juice-sh.op' }, iat: 1508639612, exp: 9999999999 })).toString('base64url')
+    const unsignedToken = `${header}.${payload}.`
+    return frisby.get(REST_URL + '/basket/1', { headers: { Authorization: 'Bearer ' + unsignedToken, 'content-type': 'application/json' } })
+      .expect('status', 200)
+      .expect('header', 'content-type', /application\/json/)
+  })
 })
 
 describe('/rest/basket/:id/coupon/:coupon', () => {
