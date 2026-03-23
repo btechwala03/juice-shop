@@ -73,6 +73,7 @@ export class SearchResultComponent implements OnDestroy, AfterViewInit {
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator | null = null
   private readonly productSubscription?: Subscription
   private routerSubscription?: Subscription
+  private searchSubscription?: Subscription
   public breakpoint = 6
   public emptyState = false
 
@@ -147,6 +148,9 @@ export class SearchResultComponent implements OnDestroy, AfterViewInit {
   // vuln-code-snippet end restfulXssChallenge
 
   ngOnDestroy () {
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe()
+    }
     if (this.routerSubscription) {
       this.routerSubscription.unsubscribe()
     }
@@ -168,7 +172,12 @@ export class SearchResultComponent implements OnDestroy, AfterViewInit {
       }) // vuln-code-snippet hide-end
       this.dataSource.filter = queryParam.toLowerCase()
       this.searchValue = this.sanitizer.bypassSecurityTrustHtml(queryParam) // vuln-code-snippet vuln-line localXssChallenge xssBonusChallenge
-      this.gridDataSource.subscribe((result: any) => {
+      
+      if (this.searchSubscription) {
+        this.searchSubscription.unsubscribe()
+      }
+      
+      this.searchSubscription = this.gridDataSource.subscribe((result: any) => {
         if (result.length === 0) {
           this.emptyState = true
         } else {
